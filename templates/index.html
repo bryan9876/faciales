@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRINCIPAL</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .card {
+            background-color: #222;
+            color: #fff;
+        }
+
+        .result-card {
+            background-color: #333;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .result-card img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Columna izquierda: Formulario de carga de imagen -->
+            <div class="col-md-6">
+                <div class="card shadow-lg mb-4">
+                    <div class="card-body">
+                        <h1 class="text-center mb-4">RECONOCIMIENTO DE PUNTOS CLAVE FACIALES</h1>
+                        <form action="/" method="post" enctype="multipart/form-data" class="text-center">
+                            <div class="form-group">
+                                <input type="file" class="form-control-file" name="file" accept="image/*" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-lg mt-3">Procesar imagen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: Resultado de la imagen procesada -->
+            <div class="col-md-6">
+                <div class="card shadow-lg result-card">
+                    <!-- Aquí se mostrará la imagen procesada con los puntos faciales detectados -->
+                    {% if image %}
+                        <div>
+                            <h2 class="text-center mb-4">IMAGEN PROCESADA</h2>
+                            <img src="{{ image }}" alt="Imagen Procesada" class="img-fluid rounded mb-3">
+                        </div>
+                    {% else %}
+                        <p class="text-center">El resultado se mostrará aquí.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>
