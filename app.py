@@ -98,7 +98,7 @@ def index():
             output_csv_path = os.path.join(app.config['UPLOAD_FOLDER'], 'facial_points.csv')
             df_facial_points.to_csv(output_csv_path, index=False)
 
-            return render_template('index.html', image=processed_image_path, csv_file='facial_points.csv')
+            return render_template('result.html', image=processed_image_path, csv_file='facial_points.csv')
 
     return render_template('index.html')
 
