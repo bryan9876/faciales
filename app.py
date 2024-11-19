@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def analyze_face(image_path):
+def analyze_face(image_path, flip_horizontal=False):
     try:
         # Initialize MediaPipe Face Mesh
         mp_face_mesh = mp.solutions.face_mesh
@@ -39,6 +39,10 @@ def analyze_face(image_path):
         if image is None:
             raise Exception("Could not load image")
 
+        # Flip image horizontally if requested
+        if flip_horizontal:
+            image = np.flip(image, axis=1)
+
         # Convert to RGB for MediaPipe
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -49,27 +53,28 @@ def analyze_face(image_path):
         if not results.multi_face_landmarks:
             raise Exception("No face detected in the image")
 
-
-        # Select 15 main keypoints
-        # key_points = [33, 133, 362, 263, 1, 61, 291, 199,
-        #             94, 0, 24, 130, 359, 288, 378]
         # Select 12 main keypoints
-        key_points = [33, 133, 362, 263, 1, 61, 291, 199,
-                     94, 0, 24, 130]
+        key_points = [33, 133, 362, 263, 1, 61, 291, 199, 94, 0, 24, 130]
 
         height, width = gray_image.shape
-        
-        # Create a new figure for each analysis
-        plt.clf()
-        fig = plt.figure(figsize=(6, 6))
-        #fig = plt.figure(figsize=(2, 4))
-        plt.imshow(gray_image, cmap='gray')
 
-        # Plot facial landmarks
+        # Adjust coordinates if flipped
+        adjusted_landmarks = []
         for point_idx in key_points:
             landmark = results.multi_face_landmarks[0].landmark[point_idx]
             x = int(landmark.x * width)
             y = int(landmark.y * height)
+            if flip_horizontal:
+                x = width - x
+            adjusted_landmarks.append((x, y))
+
+        # Create a new figure for each analysis
+        plt.clf()
+        fig = plt.figure(figsize=(6, 6))
+        plt.imshow(gray_image, cmap='gray')
+
+        # Plot facial landmarks
+        for x, y in adjusted_landmarks:
             plt.plot(x, y, 'rx')
 
         # Save plot to memory
@@ -100,22 +105,24 @@ def home():
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
+        flip_horizontal = 'flip_horizontal' in request.form and request.form['flip_horizontal'] == 'true'
+
         # Check if we're analyzing an existing file
         if 'existing_file' in request.form:
             filename = request.form['existing_file']
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             if not os.path.exists(filepath):
                 return jsonify({'error': f'File not found: {filename}'}), 404
-            
+        
         # Check if we're uploading a new file
         elif 'file' in request.files:
             file = request.files['file']
             if file.filename == '':
                 return jsonify({'error': 'No file selected'}), 400
-            
+
             if not allowed_file(file.filename):
                 return jsonify({'error': 'File type not allowed'}), 400
-            
+
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
@@ -124,8 +131,8 @@ def analyze():
             return jsonify({'error': 'No file provided'}), 400
 
         # Analyze the image
-        result_image = analyze_face(filepath)
-        
+        result_image = analyze_face(filepath, flip_horizontal=flip_horizontal)
+
         return jsonify({
             'success': True,
             'image': result_image
